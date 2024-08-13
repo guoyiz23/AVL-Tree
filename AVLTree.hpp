@@ -1,4 +1,5 @@
 //  Created by Kadir Emre Oto on 06.08.2018.
+//  On 2024.8.13, guoyiz23 added range sum query
 
 #ifndef AVLTree_hpp
 #define AVLTree_hpp
@@ -7,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cassert>
 #include "AVLTreeNode.hpp"
 
 template <class T>
@@ -31,10 +33,11 @@ public:
     int find(T value) const;
     int lower_bound(T value) const;
     int upper_bound(T value) const;
-    
+
     const T& find_min() const;
     const T& find_max() const;
     const T& operator[](std::size_t idx) const;
+    const T sum(T l, T r) const;
     
     void display();
 };

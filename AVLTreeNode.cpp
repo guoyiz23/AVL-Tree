@@ -6,6 +6,7 @@ template <class T>
 AVLTreeNode<T>::AVLTreeNode(T value): value(value){
     count = 1;
     height = 1;
+    sum = T();
     
     left = nullptr;
     right = nullptr;
@@ -17,6 +18,8 @@ void AVLTreeNode<T>::updateValues(){
     
     height = std::max(left != nullptr ? left->height : 0,
                       right != nullptr ? right->height : 0) + 1;
+
+    sum = (left != nullptr ? left->sum : T()) + (right != nullptr ? right->sum : T()) + value;
 }
 
 template <class T>

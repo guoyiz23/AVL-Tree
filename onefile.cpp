@@ -1,9 +1,11 @@
-//  Created by Kadir Emre Oto on 06.08.2018.
+//  Created by Kadir Emre Oto on 06.08.2018
+//  On 2024.8.13, guoyiz23 added range sum query
 
 #include <iostream>
 #include <algorithm>
 #include <vector>
 #include <set>
+#include <cassert>
 
 
 template <class T>
@@ -14,6 +16,7 @@ struct AVLTreeNode {
     const T value;
     int count;  // how many nodes are there in this subtree
     int height;
+    T sum;
     
     AVLTreeNode(T value);
     void updateValues();
@@ -27,6 +30,7 @@ template <class T>
 AVLTreeNode<T>::AVLTreeNode(T value): value(value){
     count = 1;
     height = 1;
+    sum = T();
     
     left = nullptr;
     right = nullptr;
@@ -38,6 +42,8 @@ void AVLTreeNode<T>::updateValues(){
     
     height = std::max(left != nullptr ? left->height : 0,
                       right != nullptr ? right->height : 0) + 1;
+
+    sum = (left != nullptr ? left->sum : T()) + (right != nullptr ? right->sum : T()) + value;
 }
 
 template <class T>
@@ -92,7 +98,11 @@ public:
     int find(T value) const;
     int lower_bound(T value) const;
     int upper_bound(T value) const;
+
+    const T& find_min() const;
+    const T& find_max() const;
     const T& operator[](std::size_t idx) const;
+    const T sum(T l, T r) const;
     
     void display();
 };
@@ -135,7 +145,7 @@ void AVLTree<T>::clear(){
 template <class T>
 void AVLTree<T>::insert(T value){
     AVLTreeNode<T> **indirect = &root;  // to generalize insertion
-    std::vector<AVLTreeNode<T>**> path;  // to update height values
+    std::vector<AVLTreeNode<T>**> path;  // to update height and sum values
     
     while (*indirect != nullptr){
         path.push_back(indirect);
@@ -156,7 +166,7 @@ void AVLTree<T>::insert(T value){
 template <class T>
 void AVLTree<T>::erase(T value){
     AVLTreeNode<T> **indirect = &root;  // to generalize insertion
-    std::vector<AVLTreeNode<T>**> path;  // to update height values
+    std::vector<AVLTreeNode<T>**> path;  // to update height and sum values
     
     while (*indirect != nullptr and (*indirect)->value != value){
         path.push_back(indirect);
@@ -281,7 +291,6 @@ int AVLTree<T>::find(T value) const{
 
 template <class T>
 int AVLTree<T>::upper_bound(T value) const{
-    
     AVLTreeNode<T> *direct = root;  // to generalize insertion
     int idx = 0;
     
@@ -299,7 +308,6 @@ int AVLTree<T>::upper_bound(T value) const{
 
 template <class T>
 int AVLTree<T>::lower_bound(T value) const{
-    
     AVLTreeNode<T> *direct = root;  // to generalize insertion
     int idx = 0;
     
@@ -316,12 +324,32 @@ int AVLTree<T>::lower_bound(T value) const{
 }
 
 template <class T>
+const T& AVLTree<T>::find_min() const{
+    AVLTreeNode<T> *cur = root;
+
+    while (cur->left != nullptr)
+        cur = cur->left;
+
+    return cur->value;
+}
+
+template <class T>
+const T& AVLTree<T>::find_max() const{
+    AVLTreeNode<T> *cur = root;
+
+    while (cur->right != nullptr)
+        cur = cur->right;
+
+    return cur->value;
+}
+
+template <class T>
 const T& AVLTree<T>::operator[](std::size_t idx) const{
     AVLTreeNode<T> *cur = root;
     int left = cur->left != nullptr ? cur->left->count : 0;
     
-    while (left != idx){
-        if (left < idx){
+    while (left != int(idx)){
+        if (left < int(idx)){
             idx -= left + 1;
             
             cur = cur->right;
@@ -338,13 +366,104 @@ const T& AVLTree<T>::operator[](std::size_t idx) const{
 }
 
 template <class T>
+const T AVLTree<T>::sum(T l, T r) const{
+    assert(l <= r);
+    T res = T();
+
+    if (root == nullptr){
+        return res;
+    }
+
+    AVLTreeNode<T> *subtree = root;
+
+    while (subtree->value < l || subtree->value > r){
+        if (subtree->value < l){
+            if (subtree->right == nullptr){
+                return res;
+            }
+            else{
+                subtree = subtree->right;
+            }
+        } else if (subtree->value > r) {
+            if (subtree->left == nullptr){
+                return res;
+            }
+            else{
+                subtree = subtree->left;
+            }
+        }
+    }
+
+    res += subtree->value;
+
+    AVLTreeNode<T> *left_side = subtree, *right_side = subtree;
+
+    while (left_side->left != nullptr || left_side->right != nullptr){
+        if (left_side->value >= l){
+            if (left_side->left != nullptr){
+                left_side = left_side->left;
+            }
+            else {
+                break;
+            }
+        }
+        else{
+            if (left_side->right != nullptr){
+                left_side = left_side->right;
+            }
+            else {
+                break;
+            }
+        }
+        if (left_side->value >= l){
+            res += left_side->value;
+            if (left_side->right != nullptr) {
+                res += left_side->right->sum;
+            }
+        }
+    }
+
+    while (right_side->left != nullptr || right_side->right != nullptr){
+        if (right_side->value <= r){
+            if (right_side->right != nullptr){
+                right_side = right_side->right;
+            }
+            else {
+                break;
+            }
+        }
+        else{
+            if (right_side->left != nullptr){
+                right_side = right_side->left;
+            }
+            else {
+                break;
+            }
+        }
+        if (right_side->value <= r){
+            res += right_side->value;
+            if (right_side->left != nullptr) {
+                res += right_side->left->sum;
+            }
+        }
+    }
+
+    return res;
+}
+
+template <class T>
 void AVLTree<T>::display(){
-    printf("\n");
+    // fwide(stdout, 1);
+    setlocale(LC_ALL, "");
+    // printf("\n");
+    std::cerr << "\n";
     if (root != nullptr)
         display(root);
     else
-        printf("Empty");
-    printf("\n");
+        // printf("Empty");
+        std::cerr << "Empty";
+    // printf("\n");
+    std::cerr <<  "\n";
 }
 
 template <class T>
@@ -353,14 +472,18 @@ void AVLTree<T>::display(AVLTreeNode<T> *cur, int depth, int state){  // state: 
         display(cur->left, depth + 1, 1);
     
     for (int i=0; i < depth; i++)
-        printf("     ");
+        // printf("     ");
+        std::cerr << "     ";
     
     if (state == 1) // left
-        printf("┌───");
+        // wprintf(L"┌───");
+        std::wcerr << L"┌───";
     else if (state == 2)  // right
-        printf("└───");
+        // wprintf(L"└───");
+        std::wcerr << L"└───";
     
-    std::cout << "[" << cur->value << "] - (" << cur->count << ", " << cur->height << ")" << std::endl;
+    // std::cout << "[" << cur->value << "] - (" << cur->count << ", " << cur->height << ")" << std::endl;
+    std::cerr << "[" << cur->value << "] - (" << cur->sum << ")" << std::endl;
     
     if (cur->right)
         display(cur->right, depth + 1, 2);

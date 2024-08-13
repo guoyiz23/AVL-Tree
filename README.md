@@ -18,6 +18,7 @@ The tree can store any type of data which has **greater than** (>) operator. Bui
 | `operator[](int idx)` | access element at position idx in tree | O(logN) |
 | `lower_bound(T value)` | return the position of the first element which does not compare less than value | O(logN) |
 | `upper_bound(T value)` | return the position of the first element which does not compare greater than value | O(logN) |
+| `sum(T l, T r)` | return the sum of elements with values in [l,r] | O(logN) |
 | `size()` | return tree size | constant |
 | `empty()` | test if tree is empty | constant |
 | `clear()` | clear tree | O(N) |

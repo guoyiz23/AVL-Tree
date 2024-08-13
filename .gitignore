@@ -1,2 +1,5 @@
 .DS_Store
 kod
+*.o
+*.gch
+*.exe

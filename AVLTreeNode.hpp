@@ -1,4 +1,5 @@
 //  Created by Kadir Emre Oto on 06.08.2018.
+//  On 2024.8.13, guoyiz23 added range sum query
 
 #ifndef AVLTreeNode_hpp
 #define AVLTreeNode_hpp
@@ -14,6 +15,7 @@ struct AVLTreeNode {
     const T value;
     int count;  // how many nodes are there in this subtree
     int height;
+    T sum;
     
     AVLTreeNode(T value);
     void updateValues();
